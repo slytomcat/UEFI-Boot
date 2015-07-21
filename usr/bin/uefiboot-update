@@ -1,0 +1,15 @@
+#!/bin/bash
+
+source /etc/uefiboot.cfg
+
+# remove all Ubuntu boot options 
+for OPT in $(efibootmgr | grep Boot[0-9].*Ubuntu- | sed 's/Boot//;s/\*.*//')
+do
+  efibootmgr -Bb$OPT >/dev/null
+done
+
+# add new boot option according to installed kernels
+for KVER in $(ls /boot/vmlinuz* | sed 's/\/boot\/vmlinuz-//' | sort)
+do
+  efibootmgr -cl vmlinuz-$KVER -L "Ubuntu-"$KVER -u "root=$ROOT $OPTIONS initrd=initrd.img-$KVER" >/dev/null
+done

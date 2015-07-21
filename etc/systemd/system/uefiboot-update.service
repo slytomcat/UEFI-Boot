@@ -1,0 +1,6 @@
+[Unit]
+Description=Update UEFI boot options according to installed kernel versions
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/uefiboot-update
