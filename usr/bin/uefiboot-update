@@ -6,19 +6,20 @@ OPTIONS="ro quiet"
 # read config file
 source /etc/uefiboot.cfg
 
-# if ROOT is not set then get root fs reference from /etc/fstab
+# if ROOT is not set then get root device reference from /etc/fstab
 if [[ "$ROOT" = "" ]]
 then
-  ROOT="$(sed '/^#.*/d' /etc/fstab | sed -n '/ \/ /p' | sed  's/ \/.*//')"
+  ROOT="$(sed '/^#.*/d;/ \/ /!d;s/ \/.*//' /etc/fstab)"
 fi
 
 # remove all Ubuntu boot options 
-for OPT in $(efibootmgr | grep Boot[0-9].*Ubuntu- | sed 's/Boot//;s/\*.*//')
+for OPT in $(efibootmgr | sed '/Boot[0-9].*Ubuntu/!d;s/Boot//;s/\*.*//')
 do
   efibootmgr -Bb$OPT >/dev/null
 done
 
 # add new boot options according to installed kernels
+# the most new kernel should be added as last in order to be a first in boot options sequence
 for KVER in $(ls /boot/vmlinuz* | sed 's/\/boot\/vmlinuz-//' | sort)
 do
   efibootmgr -cl vmlinuz-$KVER -L "Ubuntu-"$KVER -u "root=$ROOT $OPTIONS initrd=initrd.img-$KVER" >/dev/null
