@@ -12,11 +12,11 @@ fi
 # if ROOT is not set then get root fs reference from /etc/fstab
 if [[ "$ROOT" = "" ]]
 then
-  ROOT="$(sed '/^#.*/d' /etc/fstab | sed -n '/ \/ /p' | sed  's/ \/.*//')"
+  ROOT="$(sed '/^#.*/d;/ \/ /!d;s/ \/.*//' /etc/fstab)"
 fi
 
 # remove all Ubuntu boot options 
-for OPT in $(efibootmgr | grep Boot[0-9].*Ubuntu- | sed 's/Boot//;s/\*.*//')
+for OPT in $(efibootmgr | sed '/Boot[0-9].*Ubuntu/!d;s/Boot//;s/\*.*//')
 do
   efibootmgr -Bb$OPT >/dev/null
 done
