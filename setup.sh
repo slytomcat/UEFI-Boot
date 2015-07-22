@@ -10,3 +10,4 @@ systemctl enable uefiboot-update.path
 systemctl start uefiboot-update.path
 chmod a+x /usr/bin/uefiboot-update 
 apt-get purge grub*, shim
+echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/zz-no-recommends
