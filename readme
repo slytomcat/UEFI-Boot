@@ -1,8 +1,6 @@
-UEFI Boot - is s small project aimed to organize the loading of linux (ubuntu) via UEFI firmware (without any bootloader).
+UEFI Boot - is s small and simple project aimed to organize the loading of linux (ubuntu) via UEFI firmware (without any bootloader).
 
 On this stage it works only with Ubuntu 15.04 and higher (as it requires systemd)
-
-All files are located in folders as they should be copied during installation (installation is a part of setup.sh script)
 
 Files:
 readme - this file
@@ -13,4 +11,18 @@ setup.sh - setup and initialization script
 /etc/systemd/system/uefiboot-update.path - systemd file watcher unit
 /etc/systemd/system/uefiboot-update.service - systemd service unit
 
-Setup script is designed to work on Ubuntu system that is installed with UEFI support (grub-efi is in use instead of grub-pc). It performs preinstallation actions and activates systemd service.
+Notes:
+
+All files are located in folders as they should be copied during installation (installation is a part of setup.sh script)
+
+Setup script is designed to work on Ubuntu system that is installed with UEFI support (grub-efi is in use instead of grub-pc). It performs preinstallation, installation and activates systemd service.
+
+/etc/uefiboot.cfg - is optional config file. It sets root file system device reference and kernel boot options. When the file is missed or values are not set then:
+- root device is taken from /etc/fstab
+- boot options are set as "ro quiet"
+
+Important:
+
+Be very careful with parameter ROOT in /etc/uefiboot.cfg! If you make a mistake in this parameter value and update UEFI boot options the system will fall in to initramfs shell. There will be only two options to restore normal boot:
+1. Using UEFI Shell (if it is available on your system): you can manualy start the kernel and specify correct parameters for it.
+2. Using LiveUSB/CD: use efibootmgr utility to define correct UEFI boot option.
