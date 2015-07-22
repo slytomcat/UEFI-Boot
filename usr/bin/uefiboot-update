@@ -1,6 +1,16 @@
 #!/bin/bash
+# Set default cofinuration values 
+ROOT=""
+OPTIONS="ro quiet"
 
+# read config file
 source /etc/uefiboot.cfg
+
+# if ROOT is not set then get root fs reference from /etc/fstab
+if [[ "$ROOT" = "" ]]
+then
+  ROOT="$(sed '/^#.*/d' /etc/fstab | sed -n '/ \/ /p' | sed  's/ \/.*//')"
+fi
 
 # remove all Ubuntu boot options 
 for OPT in $(efibootmgr | grep Boot[0-9].*Ubuntu- | sed 's/Boot//;s/\*.*//')
