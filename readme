@@ -23,6 +23,7 @@ Setup script is designed to work on Ubuntu system that is installed with UEFI su
 
 Important:
 
-Be very careful with parameter ROOT in /etc/uefiboot.cfg! If you make a mistake in this parameter value and update UEFI boot options the system will fall in to initramfs shell. There will be only two options to restore normal boot:
-1. Using UEFI Shell (if it is available on your system): you can manualy start the kernel and specify correct parameters for it.
-2. Using LiveUSB/CD: use efibootmgr utility to define correct UEFI boot option.
+Be very careful with parameter ROOT in /etc/uefiboot.cfg! If you make a mistake in this parameter value and update UEFI boot options the system will fall in to initramfs shell. There will be three options to recover normal boot:
+1. From initramfs shell: try to mount root device into /root catalog and exit from initramfs shell.
+2. Using UEFI Shell (if it is available on your system): you can manualy start the kernel and specify correct parameters for it.
+3. Using LiveUSB/CD: boot in UEFI mode from LiveUSB/CD and use efibootmgr utility to define correct UEFI boot option.
