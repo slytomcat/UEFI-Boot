@@ -21,7 +21,7 @@ do
   efibootmgr -Bb$OPT >/dev/null
 done
 
-# add new boot option according to installed kernels
+# add new boot options according to installed kernels
 echo "Updating UEFI boot options"
 
 for KVER in $(ls /boot/vmlinuz* | sed 's/\/boot\/vmlinuz-//' | sort)
