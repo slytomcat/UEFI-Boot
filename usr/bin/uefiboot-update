@@ -21,8 +21,12 @@ do
   efibootmgr -Bb$OPT >/dev/null
 done
 
-# add new boot options according to installed kernels
+# add new boot option according to installed kernels
+echo "Updating UEFI boot options"
+
 for KVER in $(ls /boot/vmlinuz* | sed 's/\/boot\/vmlinuz-//' | sort)
 do
+  echo -n "Kernel vmlinuz-$KVER found"
   efibootmgr -cl vmlinuz-$KVER -L "Ubuntu-"$KVER -u "root=$ROOT $OPTIONS initrd=initrd.img-$KVER" >/dev/null
+  echo " ... added"
 done
