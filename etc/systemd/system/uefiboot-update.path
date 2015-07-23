@@ -1,9 +1,0 @@
-[Unit]
-Description=Update UEFI boot options according to installed kernel versions
-
-[Path]
-PathModified=/vmlinuz
-PathModified=/vmlinuz.old
-
-[Install]
-WantedBy=multi-user.target

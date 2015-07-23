@@ -13,11 +13,10 @@ mount /boot
 #2. Copy files
 cp usr/bin/uefiboot-update /usr/bin/
 cp etc/uefiboot.cfg /etc/
-cp etc/systemd/system/uefiboot-update.* /etc/systemd/system/
 
-#3. Activate and start the watcher service
-systemctl enable uefiboot-update.path
-systemctl start uefiboot-update.path
+#3. Link utility into folders of postinst.d and postrm.d kernel triggers
+ln -s /usr/bin/uefiboot-update /etc/kernel/postinst.d/uefiboot-update
+ln -s /usr/bin/uefiboot-update /etc/kernel/postrm.d/uefiboot-update
 
 #4. Make sure the utility has exec right
 chmod a+x /usr/bin/uefiboot-update 
