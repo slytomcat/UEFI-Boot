@@ -24,5 +24,5 @@ chmod a+x /usr/bin/uefiboot-update
 #5. Remove bootloaders
 apt-get purge grub*, shim
 
-#6. Instruct APT do not install recommended dependencies (a kernel package has grub in recommends)
+#6. Instruct APT do not install recommended dependencies (a kernel package has grub in recommends but we don't need it anymore)
 echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/zz-no-recommends
