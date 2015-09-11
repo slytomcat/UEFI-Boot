@@ -10,7 +10,7 @@ sed -i 's/\/boot\/efi/\/boot/' /etc/fstab
 # Mount EFS partition as /boot
 mount /boot
 
-#2. Copy files
+#2. Copy utility files
 cp usr/bin/uefiboot-update /usr/bin/
 cp etc/uefiboot.conf /etc/
 
