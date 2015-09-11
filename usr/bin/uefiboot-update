@@ -1,29 +1,30 @@
 #!/bin/bash
-# Set default cofinuration values 
+# Setup cofinuration values 
 ROOT=""
 OPTIONS="ro quiet"
 
-# read config file
-if [ -x /etc/uefiboot.conf ] 
+# Read the config file if it exists
+if [ -x /etc/uefiboot.conf ] 
 then
   source /etc/uefiboot.conf
 fi
 
-# if ROOT is not set then get root fs reference from /etc/fstab
+# If ROOT is not defined then get root partition reference from /etc/fstab
 if [[ "$ROOT" = "" ]]
 then
   ROOT="$(sed '/^#.*/d;/ \/ /!d;s/ \/.*//' /etc/fstab)"
 fi
 
-# remove all Ubuntu boot options 
+# Remove all Ubuntu boot options 
 for OPT in $(efibootmgr | sed '/Boot[0-9].*Ubuntu/!d;s/Boot//;s/\*.*//')
 do
   efibootmgr -Bb$OPT >/dev/null
 done
 
-# add new boot options according to installed kernels
+# Add new boot options according to installed kernels
 echo "Updating UEFI boot options"
-
+# Sort kernel version from older (first) to latest (last). It is imoprtant
+# as last added options will be first option in booting order.
 for KVER in $(ls /boot/vmlinuz* | sed 's/\/boot\/vmlinuz-//' | sort)
 do
   echo -n "Kernel vmlinuz-$KVER found"
