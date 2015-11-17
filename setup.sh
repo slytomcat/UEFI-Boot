@@ -22,7 +22,10 @@ ln -s /usr/bin/uefiboot-update /etc/kernel/postrm.d/uefiboot-update
 chmod a+x /usr/bin/uefiboot-update 
 
 #5. Remove bootloaders
-apt-get purge grub*, shim
+apt-get purge grub* shim
 
 #6. Instruct APT do not install recommended dependencies (a kernel package has grub in recommends but we don't need it anymore)
 echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/zz-no-recommends
+
+#7. Update UEFI boot options
+uefiboot-update
