@@ -16,7 +16,7 @@ then
 fi
 
 # Remove all Ubuntu boot options 
-for OPT in $(efibootmgr | sed '/Boot[0-9].*Ubuntu/!d;s/Boot//;s/\*.*//')
+for OPT in $(efibootmgr | sed '/Boot[0-9].*buntu/!d;s/Boot//;s/\*.*//')
 do
   efibootmgr -Bb$OPT >/dev/null
 done
