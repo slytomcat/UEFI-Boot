@@ -4,7 +4,7 @@ ROOT=""
 OPTIONS="ro quiet"
 
 # Read the config file if it exists
-if [ -x /etc/uefiboot.conf ] 
+if [ -e /etc/uefiboot.conf ]
 then
   source /etc/uefiboot.conf
 fi
