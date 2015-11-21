@@ -15,6 +15,7 @@ Setup script is designed to work on Ubuntu system that is installed with UEFI su
 /etc/uefiboot.conf - is optional config file. It sets root file system device reference and kernel boot options. When the file is missed or values are not set then:
 - root device is taken from /etc/fstab
 - boot options are set as "ro quiet"
+- kernel suffix is empty ("") 
 
 Important:
 
