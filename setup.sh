@@ -1,6 +1,6 @@
 #1. Remount EFS partition as /boot
 # Move all kernel's files to EFS partition (that is mounted in /boot/efi)
-mv /boot/*-generic /boot/efi/
+mv /boot/*-generic* /boot/efi/
 # Unmount EFS partition
 umount /boot/efi
 # Remove all rest from /boot (it will be just mount point)
