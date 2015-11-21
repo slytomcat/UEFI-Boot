@@ -2,6 +2,7 @@
 # Setup cofinuration values 
 ROOT=""
 OPTIONS="ro quiet"
+K_SUFFIX=""
 
 # Read the config file if it exists
 if [ -e /etc/uefiboot.conf ]
@@ -25,9 +26,9 @@ done
 echo "Updating UEFI boot options"
 # Sort kernel version from older (first) to latest (last). It is imoprtant
 # as last added options will be first option in booting order.
-for KVER in $(ls /boot/vmlinuz* | sed 's/\/boot\/vmlinuz-//' | sort)
+for KVER in $(ls /boot/vmlinuz*generic | sed 's/\/boot\/vmlinuz-//' | sort)
 do
   echo -n "Kernel vmlinuz-$KVER found"
-  efibootmgr -cl vmlinuz-$KVER -L "Ubuntu-"$KVER -u "root=$ROOT $OPTIONS initrd=initrd.img-$KVER" >/dev/null
+  efibootmgr -cl vmlinuz-$KVER$K_SUFFIX -L "Ubuntu-"$KVER -u "root=$ROOT $OPTIONS initrd=initrd.img-$KVER" >/dev/null
   echo " ... added"
 done
