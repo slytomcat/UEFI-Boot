@@ -8,6 +8,7 @@ license - GPL license
 setup.sh - setup and initialization script
 /usr/bin/uefuboot-update - utility to update UEFI boot options according to installed kernel versions
 /etc/uefiboot.conf - configuration file of uefuboot-update utility
+keys - set of known keys for SecureBoot support
 
 Notes:
 
