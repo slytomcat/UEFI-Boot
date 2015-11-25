@@ -1,13 +1,13 @@
 #1. Remount EFS partition as /boot
-# Move all kernel's files to EFS partition (that is mounted in /boot/efi)
+# Move all kernel's files to ESP partition (that is mounted in /boot/efi)
 mv /boot/*-generic* /boot/efi/
-# Unmount EFS partition
+# Unmount ESP partition
 umount /boot/efi
 # Remove all rest from /boot (it will be just mount point)
 rm -rf /boot/*
-# Change EFS mount path from '/boot/efi' to '/boot' 
+# Change ESP mount path from '/boot/efi' to '/boot' 
 sed -i 's/\/boot\/efi/\/boot/' /etc/fstab
-# Mount EFS partition as /boot
+# Mount ESP partition as /boot
 mount /boot
 
 #2. Copy utility files
@@ -24,7 +24,8 @@ chmod a+x /usr/bin/uefiboot-update
 #5. Remove bootloaders
 apt-get purge grub* shim
 
-#6. Instruct APT do not install recommended dependencies (a kernel package has grub in recommends but we don't need it anymore)
+#6. Instruct APT do not install recommended dependencies (a kernel package
+#   has grub in recommends but we don't need it anymore)
 echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/zz-no-recommends
 
 #7. Update UEFI boot options
