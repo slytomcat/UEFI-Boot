@@ -1,4 +1,4 @@
-UEFI Boot - is s small and simple project aimed to organize the loading of linux (ubuntu) via UEFI firmware (without any bootloader).
+UEFI Boot - is a small and simple project aimed to organize the loading of linux (ubuntu) via UEFI firmware (without any bootloader).
 
 The synchronization of UEFI boot options with installed kernel versions is triggered via /etc/kernel/postinst.d and /etc/kernel/postrm.d kernel triggers.
 
