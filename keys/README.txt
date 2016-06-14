@@ -1,9 +1,9 @@
-These keys were collected by Roderick W. Smith in the his rEFInd project 
-(http://www.rodsbooks.com/refind/).
-
 This directory contains known public keys for Linux distributions and from
 other parties that sign boot loaders and kernels that should be verifiable
-by shim or UEFI firmware.
+by shim. I'm providing these keys as a convenience to enable easy
+installation of keys should you replace your distribution's version of shim
+with another one and therefore require adding its public key as a machine
+owner key (MOK).
 
 Files come with three extensions. A filename ending in .crt is a
 certificate file that can be used by sbverify to verify the authenticity of
@@ -16,11 +16,6 @@ files similar to .crt files, but in a different form. The MokManager
 utility expects its input public keys in this form, so these are the files
 you would use to add a key to the MOK list maintained by MokManager and
 used by shim.
-Some (not all) UEFI firmware can load these keys within the key manupulation 
-section of setup utility. 
-
-All Linux keys are self-signed - they can be uploaded in MOK (for Shim) or
-in to UEFI db keys list.
 
 The files in this directory are, in alphabetical order:
 
@@ -35,23 +30,21 @@ The files in this directory are, in alphabetical order:
 - microsoft-kekca-public.der -- Microsoft's key exchange key (KEK), which
   is present on most UEFI systems with Secure Boot. The purpose of
   Microsoft's KEK is to enable Microsoft tools to update Secure Boot
-  variables. 
+  variables. There is no reason to add it to your MOK list.
 
 - microsoft-pca-public.der -- A Microsoft public key, matched to the one
   used to sign Microsoft's own boot loader. You might include this key in
-  your MOK list or in UEFI db list if you replace the keys that came with 
-  your computer with your own key but still want to boot Windows. 
-  There's no reason to add it to your MOK list or in UEFI db list if your
-  computer came this key pre-installed and you did not replace the default
-  keys.
+  your MOK list if you replace the keys that came with your computer with
+  your own key but still want to boot Windows. There's no reason to add it
+  to your MOK list if your computer came this key pre-installed and you did
+  not replace the default keys.
 
 - microsoft-uefica-public.der -- A Microsoft public key, matched to the one
   Microsoft uses to sign third-party applications and drivers. If you
-  remove your default keys, adding this one to UEFI db list or to your MOK 
-  list will enable  you to launch third-party boot loaders and other tools 
-  signed by Microsoft. There's no reason to add it to MOK/db list if your 
-  computer came this key pre-installed and you did not replace the default
-  keys.
+  remove your default keys, adding this one to your MOK list will enable
+  you to launch third-party boot loaders and other tools signed by
+  Microsoft. There's no reason to add it to your MOK list if your computer
+  came this key pre-installed and you did not replace the default keys.
 
 - openSUSE-UEFI-CA-Certificate.cer & openSUSE-UEFI-CA-Certificate.crt --
   Public keys matched to the ones used to sign OpenSUSE 12.3.

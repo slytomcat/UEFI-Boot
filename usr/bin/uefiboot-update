@@ -2,6 +2,7 @@
 # Setup cofinuration values 
 ROOT=""
 OPTIONS="ro quiet"
+ROOTFLAGS=""
 K_SUFFIX=""
 
 # Read the config file if it exists
@@ -10,19 +11,28 @@ then
   source /etc/uefiboot.conf
 fi
 
+# Read root mounting line from /etc/fstab
+R_LINE="$(sed '/^#.*/d;/ \/ /!d' /etc/fstab)"
+
 # If ROOT is not defined then get root partition reference from /etc/fstab
 if [[ "$ROOT" = "" ]]
 then
-  ROOT="$(sed '/^#.*/d;/ \/ /!d;s/ \/.*//' /etc/fstab)"
+  ROOT="$(echo $R_LINE | sed 's/ \/.*//')"
 fi
 
-# Remove all Ubuntu boot options 
+# If ROOTFLAGS is not defined then get subvolume id or name from /etc/fstab
+if [[ "$ROOTFLAGS" = "" ]] & [[ $R_LINE == *"subvol"* ]]
+then
+  ROOTFLAGS="rootflags=$(echo $R_LINE | sed 's/^.*\(subvol[^ \t,]*\).*$/\1/')"
+fi
+
+# Remove all Ubuntu boot options from UEFI.
 for OPT in $(efibootmgr | sed '/Boot[0-9].*buntu/!d;s/Boot//;s/\*.*//')
 do
   efibootmgr -Bb$OPT >/dev/null
 done
 
-# Add new boot options according to installed kernels
+# Add new boot options according to installed kernels.
 echo "Updating UEFI boot options"
 # Sort kernel version from older (first) to latest (last). It is imoprtant
 # as last added options will be first option in booting order.
