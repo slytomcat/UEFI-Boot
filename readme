@@ -1,4 +1,4 @@
-UEFI Boot - is a small and simple project aimed to organize the loading of linux (ubuntu) via UEFI firmware (without any bootloader).
+UEFI Boot - is a small and simple project aimed to organize the loading of linux kernel via UEFI firmware (without any bootloader).
 
 The synchronization of UEFI boot options with installed kernel versions is triggered via /etc/kernel/postinst.d and /etc/kernel/postrm.d kernel triggers.
 
@@ -14,11 +14,11 @@ Notes:
 
 Setup script is designed to work on Ubuntu system that is installed with UEFI support (grub-efi is in use instead of grub-pc). It's better to review and verify that commands in this file corresponds to your configuration before you run it.
 
-/etc/uefiboot.conf - is optional config file. It sets root file system device reference and kernel suffix and boot options. When the file is missed or values are not set then:
+/etc/uefiboot.conf - is optional config file. It sets root file system device reference, subvolume (btrfs), kernel suffix and boot options. When the file is missed or values are not set then:
 - root device is taken from /etc/fstab
+- subvolume information (for btrfs) is taken from /etc/fstab
 - boot options are set as "ro quiet"
 - kernel suffix is empty ("") 
-For root filesystem located on subvolume of BTRFS the OPTIONS varible should contain the "rootflags=subvol={subvolume name}" parameter or you should change default subvolume by 'btrfs subvolume set-default ...' command.
 
 Important:
 
