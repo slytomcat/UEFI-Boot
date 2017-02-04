@@ -30,3 +30,6 @@ echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/zz-no-recommends
 
 #7. Update UEFI boot options
 uefiboot-update
+
+#8. Set UEFI bott time-out to zero
+efibootmgr -t0
