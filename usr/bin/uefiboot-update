@@ -5,7 +5,7 @@ OPTIONS="ro quiet"
 ROOTFLAGS=""
 K_SUFFIX=""
 DISTRIB=$(lsb_release -i -s)
-DISTRIB_ID=$(lsb_release -d -s | cut -d' ' -f2,3)
+DISTRIB_ID="$(lsb_release -r -s) $(lsb_release -c -s)"
 EFI_VOLUME=$(blkid -lt TYPE="vfat" -o device)
 
 # Read the config file if it exists
