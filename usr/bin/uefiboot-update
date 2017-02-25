@@ -4,8 +4,8 @@ ROOT=""
 OPTIONS="ro quiet"
 ROOTFLAGS=""
 K_SUFFIX=""
-DUSTRIB=$(lsb_release -i -s)
-DUSTRIB_ID=$(lsb_release -d -s | cut -d' ' -f2,3)
+DISTRIB=$(lsb_release -i -s)
+DISTRIB_ID=$(lsb_release -d -s | cut -d' ' -f2,3)
 EFI_VOLUME=$(blkid -lt TYPE="vfat" -o device)
 
 # Read the config file if it exists
@@ -30,7 +30,7 @@ then
 fi
 
 # Remove all Ubuntu boot options from UEFI.
-for OPT in $(efibootmgr | sed "/Boot[0-9].*$DUSTRIB/!d;s/Boot//;s/\*.*//")
+for OPT in $(efibootmgr | sed "/Boot[0-9].*$DISTRIB/!d;s/Boot//;s/\*.*//")
 do
   efibootmgr -Bb$OPT >/dev/null
 done
@@ -42,6 +42,6 @@ echo "Updating UEFI boot options"
 for KVER in $(ls /boot/vmlinuz*generic | sed 's/\/boot\/vmlinuz-//' | sort)
 do
   echo -n "Kernel vmlinuz-$KVER found"
-  efibootmgr --create --disk $(expr "$EFI_VOLUME" : '\([^0-9]*\)') --part $(expr "$EFI_VOLUME" : '.*\([0-9]\)') --loader vmlinuz-$KVER$K_SUFFIX --label "$DUSTRIB $DUSTRIB_ID $KVER" -u "root=$ROOT $ROOTFLAGS $OPTIONS initrd=initrd.img-$KVER" >/dev/null
+  efibootmgr --create --disk $(expr "$EFI_VOLUME" : '\([^0-9]*\)') --part $(expr "$EFI_VOLUME" : '.*\([0-9]\)') --loader vmlinuz-$KVER$K_SUFFIX --label "$DISTRIB $DISTRIB_ID $KVER" -u "root=$ROOT $ROOTFLAGS $OPTIONS initrd=initrd.img-$KVER" >/dev/null
   echo " ... added"
 done
