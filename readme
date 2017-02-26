@@ -19,8 +19,9 @@ Setup script is designed to work on Ubuntu system that is installed with UEFI su
 - subvolume information (for btrfs) is taken from /etc/fstab
 - boot options are set as "ro quiet"
 - kernel suffix is empty ("")
-- efi volume as $(blkid -lt TYPE="vfat" -o device)
-- boot label of UEFI boot menu will be formed of three parts
+- efi disk is /dev/sda
+- efi partition number determined from output of gdisk
+- boot label of UEFI boot menu will be formed of three parts:
   - distribution name - by default determined as $(lsb_release -d -s)
   - distribution identity - by default determined as "$(lsb_release -r -s) $(lsb_release -c -s)"
   - the kernel version.
