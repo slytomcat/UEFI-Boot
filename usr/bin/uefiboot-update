@@ -37,6 +37,6 @@ echo "Updating UEFI boot options"
 for KVER in $(ls /boot/vmlinuz*generic | sed 's/\/boot\/vmlinuz-//' | sort)
 do
   echo -n "Kernel vmlinuz-$KVER found"
-  echo efibootmgr -c -d$EFI_DISK -p$EFI_PARTITION -lvmlinuz-$KVER$K_SUFFIX -L"$DISTRIB $DISTRIB_ID $KVER" -u"root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$KVER" >/dev/null
+  efibootmgr -c -d$EFI_DISK -p$EFI_PARTITION -lvmlinuz-$KVER$K_SUFFIX -L"$DISTRIB $DISTRIB_ID $KVER" -u"root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$KVER" >/dev/null
   echo " ... added"
 done
