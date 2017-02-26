@@ -1,32 +1,27 @@
 #!/bin/bash
-# Setup cofinuration values 
-ROOT=""
+# Setup default cofinuration values 
+
+# Read root mounting line from /etc/fstab
+ROOT_LINE="$(sed '/^#.*/d;/ \/ /!d' /etc/fstab)"
+
+ROOT="$(echo $ROOT_LINE | sed 's/ \/.*//')"
 OPTIONS="ro quiet"
-ROOTFLAGS=""
+if [[ $ROOT_LINE == *"subvol"* ]]
+then
+  ROOT_FLAGS="rootflags=$(echo $ROOT_LINE | sed 's/^.*\(subvol[^ \t,]*\).*$/\1/')"
+else
+  ROOT_FLAGS=""
+fi
 K_SUFFIX=""
 DISTRIB=$(lsb_release -i -s)
-DISTRIB_ID=$(lsb_release -d -s | cut -d' ' -f2,3)
-EFI_VOLUME=$(blkid -lt TYPE="vfat" -o device)
+DISTRIB_ID="$(lsb_release -r -s) $(lsb_release -c -s)"
+EFI_DISK="/dev/sda" 
+EFI_PARTITION=$(gdisk -l $EFI_DISK | sed -n "s/[ \t]*\([0-9][0-9]*\).*EF00/\1/p")
 
 # Read the config file if it exists
 if [ -e /etc/uefiboot.conf ]
 then
   source /etc/uefiboot.conf
-fi
-
-# Read root mounting line from /etc/fstab
-R_LINE="$(sed '/^#.*/d;/ \/ /!d' /etc/fstab)"
-
-# If ROOT is not defined then get root partition reference from /etc/fstab
-if [[ "$ROOT" = "" ]]
-then
-  ROOT="$(echo $R_LINE | sed 's/ \/.*//')"
-fi
-
-# If ROOTFLAGS is not defined then get subvolume id or name from /etc/fstab
-if [[ "$ROOTFLAGS" = "" ]] & [[ $R_LINE == *"subvol"* ]]
-then
-  ROOTFLAGS="rootflags=$(echo $R_LINE | sed 's/^.*\(subvol[^ \t,]*\).*$/\1/')"
 fi
 
 # Remove all Ubuntu boot options from UEFI.
@@ -42,6 +37,6 @@ echo "Updating UEFI boot options"
 for KVER in $(ls /boot/vmlinuz*generic | sed 's/\/boot\/vmlinuz-//' | sort)
 do
   echo -n "Kernel vmlinuz-$KVER found"
-  efibootmgr --create --disk $(expr "$EFI_VOLUME" : '\([^0-9]*\)') --part $(expr "$EFI_VOLUME" : '.*\([0-9]\)') --loader vmlinuz-$KVER$K_SUFFIX --label "$DISTRIB $DISTRIB_ID $KVER" -u "root=$ROOT $ROOTFLAGS $OPTIONS initrd=initrd.img-$KVER" >/dev/null
+  echo efibootmgr -c -d$EFI_DISK -p$EFI_PARTITION -lvmlinuz-$KVER$K_SUFFIX -L"$DISTRIB $DISTRIB_ID $KVER" -u"root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$KVER" >/dev/null
   echo " ... added"
 done
