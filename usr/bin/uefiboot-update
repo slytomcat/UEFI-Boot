@@ -5,7 +5,7 @@ OPTIONS="ro quiet"
 ROOTFLAGS=""
 K_SUFFIX=""
 DISTRIB=$(lsb_release -i -s)
-DISTRIB_ID=$(lsb_release -d -s | cut -d' ' -f2,3)
+DISTRIB_ID="$(lsb_release -r -s) $(lsb_release -c -s)"
 EFI_VOLUME=$(blkid -lt TYPE="vfat" -o device)
 
 # Read the config file if it exists
@@ -32,14 +32,14 @@ fi
 # Remove all Ubuntu boot options from UEFI.
 for OPT in $(efibootmgr | sed "/Boot[0-9].*$DISTRIB/!d;s/Boot//;s/\*.*//")
 do
-  efibootmgr -Bb$OPT >/dev/null
+  efibootmgr --bootnum $OPT --delete-bootnum >/dev/null
 done
 
 # Add new boot options according to installed kernels.
 echo "Updating UEFI boot options"
 # Sort kernel version from older (first) to latest (last). It is imoprtant
 # as last added options will be first option in booting order.
-for KVER in $(ls /boot/vmlinuz*generic | sed 's/\/boot\/vmlinuz-//' | sort)
+for KVER in $(ls /boot/vmlinuz*generic | sed 's/\/boot\/vmlinuz-//' | sort -r)
 do
   echo -n "Kernel vmlinuz-$KVER found"
   efibootmgr --create --disk $(expr "$EFI_VOLUME" : '\([^0-9]*\)') --part $(expr "$EFI_VOLUME" : '.*\([0-9]\)') --loader vmlinuz-$KVER$K_SUFFIX --label "$DISTRIB $DISTRIB_ID $KVER" -u "root=$ROOT $ROOTFLAGS $OPTIONS initrd=initrd.img-$KVER" >/dev/null
