@@ -1,13 +1,46 @@
-UEFI Boot - is a small and simple project aimed to organize the loading of linux kernel via UEFI firmware (without any bootloader).
+UEFI-Boot - is a small and simple project aimed to organize the loading of linux kernel directly via UEFI firmware (without any bootloader).
 
-The synchronization of UEFI boot options with installed kernel versions is triggered via /etc/kernel/postinst.d and /etc/kernel/postrm.d kernel triggers.
+Utility uefuboot-update synchronizes UEFI boot options with installed kernel versions.
+It is triggered via /etc/kernel/postinst.d and /etc/kernel/postrm.d kernel triggers to do it's job when a new kernel installed or old one is removed.
+
+Boot options of UEFI boot menu will have labels formed of three parts
+  - distribution name 
+  - distribution identity
+  - the kernel version
+
+After the syncronization the latest kernel will became the first option to load on next boots.
+
+Script parameters
+
+The script parameters have default values that can be redefined by values from config file /etc/uefiboot.conf. And finally the values can be specified via command line options.
+
+Default values:
+
+- the reference to root filesystem (requered for boot process) is taken from /etc/fstab
+- root filesystem subvolume information (for btrfs) is taken from /etc/fstab
+- kernel boot options are "ro quiet"
+- kernel suffix (for the kernel with signature for SecureBoot support) is empty string ("")
+- disk with botable EFS partition is "/dev/sda"
+- EFS partition number is determined from output of gdisk
+- distribution name is determined as "$(lsb_release -d -s)"
+- distribution identity is determined as "$(lsb_release -r -s) $(lsb_release -c -s)"
+
+Сommand line option:
+  
+-l name   Specifies distribution name
+-i id     Specifies distribution identity
+-d disk   Specifies disk with botable EFS partition
+-p part   Specifies EFS partition number
+-o opt    Specifies kernel options
+-s sfx    Specifies kernel suffix (for the kernel with signature for SecureBoot support)
+-r root   Specifies the reference to root filesystem
 
 Files:
 readme - this file
 license - GPL license
-setup.sh - setup and initialization script
-/usr/bin/uefuboot-update - utility to update UEFI boot options according to installed kernel versions
-/etc/uefiboot.conf - configuration file of uefuboot-update utility (see comments inside).
+setup.sh - setup and initialization script (see notes below)
+usr/bin/uefuboot-update - utility to update UEFI boot options according to installed kernel versions
+etc/uefiboot.conf - configuration file of uefuboot-update utility (see comments inside).
 keys/ - set of known keys for SecureBoot support.
 
 Notes:
@@ -15,35 +48,11 @@ Notes:
 Setup script is designed to work on Ubuntu system that is installed with UEFI support (grub-efi is in use instead of grub-pc). It's better to review and verify that commands in this file corresponds to your configuration before you run it.
 
 
-Setting up the script parameters
-
-The script parameters have default values that can be redefined by values from config file /etc/uefiboot.conf. Finally the values can be specified via command line options.
-
-Default values:
-
-- root device is taken from /etc/fstab
-- subvolume information (for btrfs) is taken from /etc/fstab
-- boot options are set as "ro quiet"
-- kernel suffix (for the kernel with signature for SecureBoot support) is empty ("")
-- efi disk is /dev/sda
-- EFS partition number determined from output of gdisk
-- boot label of UEFI boot menu will be formed of three parts:
-  - distribution name - by default determined as $(lsb_release -d -s)
-  - distribution identity - by default determined as "$(lsb_release -r -s) $(lsb_release -c -s)"
-  - the kernel version.
-
-Сommand line option:
-  
--l name   Specifies distribution name
--i id     Specifies distribution identity
--d disk   Specifies root disk
--p part   Specifies EFS partition number (on root disk)
--o opt    Specifies kernel options
--s sfx    Specifies kernel suffix (for the kernel with signature for SecureBoot support)
 
 Important:
 
-Be very careful with parameters ROOT an OPTIONS in /etc/uefiboot.conf! If you make a mistake in these parameters values and update UEFI boot options the system startup will fall in to initramfs shell. There will be three options to recover normal boot:
+Be very careful with script parameters! If you make a mistake in parameters values and update UEFI boot options then the system startup will fall in to initramfs shell. There will be three options to recover normal boot:
 1. From initramfs shell: try to mount root device into /root catalog and exit from initramfs shell.
 2. Using UEFI Shell (if it is available on your system): you can manualy start the kernel and specify correct parameters for it.
-3. Using LiveUSB/CD: boot in UEFI mode from LiveUSB/CD and use efibootmgr utility to define correct UEFI boot option or you can mount original root and run /usr/bin/uefuboot-update from it.
+3. Using LiveUSB/CD: boot in UEFI mode from LiveUSB/CD and use efibootmgr utility to define correct UEFI boot option.
+After loading system you have to run uefiboot-update utility with correct parametres. 

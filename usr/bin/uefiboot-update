@@ -33,7 +33,7 @@ do
     -i) DISTRIB_ID="$2"
         shift;;
     -d) EFI_DISK="$2"
-        # find EFS partioionn on specified disk
+        # find EFS partioion number on specified disk
         EFI_PARTITION=$(gdisk -l $EFI_DISK | sed -n "s/[ \t]*\([0-9][0-9]*\).*EF00/\1/p")
         shift;;
     -p) EFI_PARTITION="$2"
@@ -42,7 +42,8 @@ do
         shift;;
     -s) K_SUFFIX="$2"
         shift;;
-
+    -r) ROOT="$2"
+        shift;;
   esac
   shift
 done
