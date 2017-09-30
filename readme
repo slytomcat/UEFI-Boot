@@ -24,9 +24,9 @@ Default values:
 - root device is taken from /etc/fstab
 - subvolume information (for btrfs) is taken from /etc/fstab
 - boot options are set as "ro quiet"
-- kernel suffix is empty ("")
+- kernel suffix (for the kernel with signature for SecureBoot support) is empty ("")
 - efi disk is /dev/sda
-- efi partition number determined from output of gdisk
+- EFS partition number determined from output of gdisk
 - boot label of UEFI boot menu will be formed of three parts:
   - distribution name - by default determined as $(lsb_release -d -s)
   - distribution identity - by default determined as "$(lsb_release -r -s) $(lsb_release -c -s)"
