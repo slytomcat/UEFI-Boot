@@ -14,7 +14,13 @@ Notes:
 
 Setup script is designed to work on Ubuntu system that is installed with UEFI support (grub-efi is in use instead of grub-pc). It's better to review and verify that commands in this file corresponds to your configuration before you run it.
 
-/etc/uefiboot.conf - is optional config file. It sets root file system device reference, subvolume (btrfs), kernel suffix and boot options. When the file is missed or values are not set then:
+
+Setting up the script parameters
+
+The script parameters have default values that can be redefined by values from config file /etc/uefiboot.conf. Finally the values can be specified via command line options.
+
+Default values:
+
 - root device is taken from /etc/fstab
 - subvolume information (for btrfs) is taken from /etc/fstab
 - boot options are set as "ro quiet"
@@ -25,6 +31,15 @@ Setup script is designed to work on Ubuntu system that is installed with UEFI su
   - distribution name - by default determined as $(lsb_release -d -s)
   - distribution identity - by default determined as "$(lsb_release -r -s) $(lsb_release -c -s)"
   - the kernel version.
+
+Сommand line option:
+  
+-l name   Specifies distribution name
+-i id     Specifies distribution identity
+-d disk   Specifies root disk
+-p part   Specifies EFS partition number (on root disk)
+-o opt    Specifies kernel options
+-s sfx    Specifies kernel suffix (for the kernel with signature for SecureBoot support)
 
 Important:
 
