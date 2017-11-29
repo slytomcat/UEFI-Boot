@@ -2,9 +2,9 @@
 # Setup default cofinuration values 
 
 # Read root mounting line from /etc/fstab
-ROOT_LINE="$(sed '/^#.*/d;/ \/ /!d' /etc/fstab)"
+ROOT_LINE="$(sed -n '/^[^#]\S*\s\/\s/p' /etc/fstab)"
 
-ROOT="$(echo $ROOT_LINE | sed 's/ \/.*//')"
+ROOT="$(echo $ROOT_LINE | sed 's/\s\/.*//')"
 OPTIONS="ro quiet"
 if [[ $ROOT_LINE == *"subvol"* ]]
 then
@@ -16,7 +16,7 @@ K_SUFFIX=""
 DISTRIB=$(lsb_release -i -s)
 DISTRIB_ID="$(lsb_release -r -s) $(lsb_release -c -s)"
 EFI_DISK="/dev/sda" 
-EFI_PARTITION=$(gdisk -l $EFI_DISK | sed -n "s/[ \t]*\([0-9][0-9]*\).*EF00/\1/p")
+EFI_PARTITION=$(gdisk -l $EFI_DISK | sed -n "s/[ \t]*\([0-9][0-9]*\).*EF00.*/\1/p")
 
 # Read the config file if it exists
 if [ -e /etc/uefiboot.conf ]
