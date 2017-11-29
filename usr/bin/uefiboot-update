@@ -8,7 +8,7 @@ ROOT="$(echo $ROOT_LINE | sed 's/\s\/.*//')"
 OPTIONS="ro quiet"
 if [[ $ROOT_LINE == *"subvol"* ]]
 then
-  ROOT_FLAGS="rootflags=$(echo $ROOT_LINE | sed 's/^.*\(subvol[^ \t,]*\).*$/\1/')"
+  ROOT_FLAGS="rootflags=$(echo $ROOT_LINE | sed 's/^.*\(subvol[^, \t]\+\).*$/\1/')"
 else
   ROOT_FLAGS=""
 fi
@@ -16,7 +16,7 @@ K_SUFFIX=""
 DISTRIB=$(lsb_release -i -s)
 DISTRIB_ID="$(lsb_release -r -s) $(lsb_release -c -s)"
 EFI_DISK="/dev/sda" 
-EFI_PARTITION=$(gdisk -l $EFI_DISK | sed -n "s/[ \t]*\([0-9][0-9]*\).*EF00.*/\1/p")
+EFI_PARTITION=$(gdisk -l $EFI_DISK | sed -n "s/[ \t]*\([0-9]\+\).*EF00.*/\1/p")
 
 # Read the config file if it exists
 if [ -e /etc/uefiboot.conf ]
@@ -34,7 +34,7 @@ do
         shift;;
     -d) EFI_DISK="$2"
         # find EFS partioion number on specified disk
-        EFI_PARTITION=$(gdisk -l $EFI_DISK | sed -n "s/[ \t]*\([0-9][0-9]*\).*EF00/\1/p")
+        EFI_PARTITION=$(gdisk -l $EFI_DISK | sed -n "s/[ \t]*\([0-9]\+\).*EF00.*/\1/p")
         shift;;
     -p) EFI_PARTITION="$2"
         shift;;
