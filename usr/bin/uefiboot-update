@@ -59,7 +59,7 @@ done
 echo "Updating UEFI boot options"
 # Sort kernel version from older (first) to latest (last). It is imoprtant
 # as last added options will be first option in booting order.
-for KVER in $(ls /boot/vmlinuz*generic | sed 's/\/boot\/vmlinuz-//' | sort)
+for KVER in $(ls /boot/vmlinuz*generic | sed 's/\/boot\/vmlinuz-//' | sort -V)
 do
   echo -n "Kernel vmlinuz-$KVER found"
   efibootmgr -c -d $EFI_DISK -p $EFI_PARTITION -l vmlinuz-$KVER$K_SUFFIX -L "$DISTRIB $DISTRIB_ID $KVER" -u "root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$KVER" >/dev/null
