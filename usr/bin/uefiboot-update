@@ -65,3 +65,5 @@ do
   efibootmgr -c -d $EFI_DISK -p $EFI_PARTITION -l vmlinuz-$KVER$K_SUFFIX -L "$DISTRIB $DISTRIB_ID $KVER" -u "root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$KVER" >/dev/null
   echo " ... added"
 done
+
+echo "vmlinuz-$KVER$K_SUFFIX root=$ROOT ROOTFLAGS$ $OPTIONS initrd=initrd.img-$KVER" > /boot/startup.nsh
