@@ -18,6 +18,8 @@ DISTRIB_ID="$(lsb_release -r -s) $(lsb_release -c -s)"
 EFI_DISK="/dev/sda" 
 EFI_PARTITION=$(gdisk -l $EFI_DISK | sed -n "s/[ \t]*\([0-9]\+\).*EF00.*/\1/p")
 
+BOOT="/boot"
+
 # Read the config file if it exists
 if [ -e /etc/uefiboot.conf ]
 then
@@ -44,6 +46,8 @@ do
         shift;;
     -r) ROOT="$2"
         shift;;
+    -b) BOOT="$2"
+        shift;;
   esac
   shift
 done
@@ -59,11 +63,12 @@ done
 echo "Updating UEFI boot options"
 # Sort kernel version from older (first) to latest (last). It is imoprtant
 # as last added options will be first option in booting order.
-for KVER in $(ls /boot/vmlinuz*generic | sed 's/\/boot\/vmlinuz-//' | sort -V)
+for KVER in $(ls $BOOT/vmlinuz*generic | sed 's/.*vmlinuz-//' | sort -V)
 do
   echo -n "Kernel vmlinuz-$KVER found"
   efibootmgr -c -d $EFI_DISK -p $EFI_PARTITION -l vmlinuz-$KVER$K_SUFFIX -L "$DISTRIB $DISTRIB_ID $KVER" -u "root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$KVER" >/dev/null
   echo " ... added"
 done
 
-echo "vmlinuz-$KVER$K_SUFFIX root=$ROOT ROOTFLAGS$ $OPTIONS initrd=initrd.img-$KVER" > /boot/startup.nsh
+# backup last added option in startup.nsh script
+echo "vmlinuz-$KVER$K_SUFFIX root=$ROOT ROOTFLAGS$ $OPTIONS initrd=initrd.img-$KVER" > $BOOT/startup.nsh
