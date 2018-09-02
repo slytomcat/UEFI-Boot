@@ -71,4 +71,4 @@ do
 done
 
 # backup last added option in startup.nsh script
-echo "vmlinuz-$KVER$K_SUFFIX root=$ROOT ROOTFLAGS$ $OPTIONS initrd=initrd.img-$KVER" > $BOOT/startup.nsh
+echo "vmlinuz-$KVER$K_SUFFIX root=$ROOT $ROOTFLAGS $OPTIONS initrd=initrd.img-$KVER" > $BOOT/startup.nsh
