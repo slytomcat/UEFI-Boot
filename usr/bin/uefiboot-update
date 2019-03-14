@@ -1,5 +1,5 @@
 #!/bin/bash
-# Setup default cofinuration values 
+# Setup default cofiguration values 
 
 # Read root mounting line from /etc/fstab
 ROOT_LINE="$(sed -n '/^[^#]\S*\s\/\s/p' /etc/fstab)"
@@ -52,23 +52,50 @@ do
   shift
 done
 
+# Prepare list of currently installed kernels' versions
+KERNELS=($(ls /boot/vm* | sed -r "s/.*vmlinuz-(.*)/\1/" | sort -V))
+# Prepare list of currently configured UEFI Boot options
+BOOTOPT=($(efibootmgr | sed -nr "s/Boot[0-9]{4}\* $DISTRIB $DISTRIB_ID (.*)/\1/p" | sort -V))
 
-# Remove all old boot options from UEFI boot menu.
-for OPT in $(efibootmgr | sed "/Boot[0-9].*$DISTRIB/!d;s/Boot//;s/\*.*//")
+# Remove UEFI boot options for not existing kernels
+for o in ${BOOTOPT[@]}
 do
-  efibootmgr -Bb$OPT >/dev/null
+  ok=0
+  for k in ${KERNELS[@]}
+  do 
+    echo -n    kernel $k
+    if [ $o = $k ]
+    then
+      ok=1
+    fi
+  done
+  if [ $ok -eq 0 ]
+  then
+    echo -n Removing boot option for not existing kernel $o
+    efibootmgr -Bb$(efibootmgr | sed -nr "s/Boot([0-9]{4})\* $DISTRIB $DISTRIB_ID $o/\1/p") >/dev/null  
+    echo " ... removed"
+  fi
 done
 
-# Add new boot options according to installed kernels.
-echo "Updating UEFI boot options"
-# Sort kernel version from older (first) to latest (last). It is imoprtant
-# as last added options will be first option in booting order.
-for KVER in $(ls $BOOT/vmlinuz*generic | sed 's/.*vmlinuz-//' | sort -V)
+# Add UEFI boot options for new kernels
+for k in ${KERNELS[@]}
 do
-  echo -n "Kernel vmlinuz-$KVER found"
-  efibootmgr -c -d $EFI_DISK -p $EFI_PARTITION -l vmlinuz-$KVER$K_SUFFIX -L "$DISTRIB $DISTRIB_ID $KVER" -u "root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$KVER" >/dev/null
-  echo " ... added"
+  ok=0
+  for o in ${BOOTOPT[@]}
+  do 
+    if [ $o = $k ]
+    then
+      ok=1
+    fi
+  done
+  if [ $ok -eq 0 ]
+  then
+    echo -n "Adding boot option for new kernel vmlinuz-$k found"
+    echo efibootmgr -cd $EFI_DISK -p $EFI_PARTITION -l vmlinuz-$k$K_SUFFIX -L "$DISTRIB $DISTRIB_ID $k" -u "root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$k" 
+#>/dev/null
+    echo " ... added"
+  fi
 done
 
 # backup last added option in startup.nsh script
-echo "vmlinuz-$KVER$K_SUFFIX root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$KVER" > $BOOT/startup.nsh
+echo "vmlinuz-$k$K_SUFFIX root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$k" > $BOOT/startup.nsh
