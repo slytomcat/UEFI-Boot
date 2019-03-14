@@ -63,7 +63,6 @@ do
   ok=0
   for k in ${KERNELS[@]}
   do 
-    echo -n    kernel $k
     if [ $o = $k ]
     then
       ok=1
