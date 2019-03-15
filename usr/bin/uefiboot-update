@@ -53,44 +53,28 @@ do
 done
 
 # Prepare list of currently installed kernels' versions
-KERNELS=($(ls /boot/vm* | sed -r "s/.*vmlinuz-(.*)/\1/" | sort -V))
+KERNELS=$(ls /boot/vm* | sed -r "s/.*vmlinuz-(.*)/\1/" | sort -V)
 # Prepare list of currently configured UEFI Boot options
-BOOTOPT=($(efibootmgr | sed -nr "s/Boot[0-9]{4}\* $DISTRIB $DISTRIB_ID (.*)/\1/p" | sort -V))
+BOOTOPTS=$(efibootmgr | sed -nr "s/Boot[0-9]{4}\* $DISTRIB $DISTRIB_ID (.*)/\1/p" | sort -V)
 
 # Remove UEFI boot options for not existing kernels
-for o in ${BOOTOPT[@]}
+for o in $BOOTOPTS
 do
-  ok=0
-  for k in ${KERNELS[@]}
-  do 
-    if [ $o = $k ]
-    then
-      ok=1
-    fi
-  done
-  if [ $ok -eq 0 ]
+  if [[ $KERNELS != *$o* ]]
   then
-    echo -n Removing boot option for not existing kernel $o
-    efibootmgr -Bb$(efibootmgr | sed -nr "s/Boot([0-9]{4})\* $DISTRIB $DISTRIB_ID $o/\1/p") >/dev/null  
+    echo -n "Removing boot option for not existing kernel $o"
+    echo efibootmgr -Bb$(efibootmgr | sed -nr "s/Boot([0-9]{4})\* $DISTRIB $DISTRIB_ID $o/\1/p") >/dev/null  
     echo " ... removed"
   fi
 done
 
 # Add UEFI boot options for new kernels
-for k in ${KERNELS[@]}
+for k in $KERNELS
 do
-  ok=0
-  for o in ${BOOTOPT[@]}
-  do 
-    if [ $o = $k ]
-    then
-      ok=1
-    fi
-  done
-  if [ $ok -eq 0 ]
+  if [[ $BOOTOPTS != *$k* ]]
   then
-    echo -n "Adding boot option for new kernel vmlinuz-$k found"
-    efibootmgr -cd $EFI_DISK -p $EFI_PARTITION -l vmlinuz-$k$K_SUFFIX -L "$DISTRIB $DISTRIB_ID $k" -u "root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$k" >/dev/null
+    echo -n "Adding boot option for new kernel vmlinuz-$k"
+    echo efibootmgr -cd $EFI_DISK -p $EFI_PARTITION -l vmlinuz-$k$K_SUFFIX -L "$DISTRIB $DISTRIB_ID $k" -u "root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$k" >/dev/null
     echo " ... added"
   fi
 done
