@@ -1,0 +1,90 @@
+#!/bin/bash
+# Setup default cofiguration values 
+
+# Read root mounting line from /etc/fstab
+ROOT_LINE="$(sed -n '/^[^#]\S*\s\/\s/p' /etc/fstab)"
+
+ROOT="$(echo $ROOT_LINE | sed 's/\s\/.*//')"
+OPTIONS="ro quiet"
+if [[ $ROOT_LINE == *"subvol"* ]]
+then
+  ROOT_FLAGS="rootflags=$(echo $ROOT_LINE | sed 's/^.*\(subvol[^, \t]\+\).*$/\1/')"
+else
+  ROOT_FLAGS=""
+fi
+K_SUFFIX=""
+DISTRIB=$(lsb_release -i -s)
+DISTRIB_ID="$(lsb_release -r -s) $(lsb_release -c -s)"
+EFI_DISK="/dev/sda" 
+EFI_PARTITION=$(gdisk -l $EFI_DISK | sed -n "s/[ \t]*\([0-9]\+\).*EF00.*/\1/p")
+
+BOOT="/boot"
+
+# Read the config file if it exists
+if [ -e /etc/uefiboot.conf ]
+then
+  source /etc/uefiboot.conf
+fi
+
+# Read command line options
+while [ -n "$1" ] 
+do
+  case "$1" in
+    -l) DISTRIB="$2"
+        shift;;
+    -i) DISTRIB_ID="$2"
+        shift;;
+    -d) EFI_DISK="$2"
+        # find EFS partioion number on specified disk
+        EFI_PARTITION=$(gdisk -l $EFI_DISK | sed -n "s/[ \t]*\([0-9]\+\).*EF00.*/\1/p")
+        shift;;
+    -p) EFI_PARTITION="$2"
+        shift;;
+    -o) OPTIONS="$2"
+        shift;;
+    -s) K_SUFFIX="$2"
+        shift;;
+    -r) ROOT="$2"
+        shift;;
+    -b) BOOT="$2"
+        shift;;
+  esac
+  shift
+done
+
+# Prepare list of currently installed kernels' versions
+KERNELS=$(ls /boot/vm* | sed -r "s/.*vmlinuz-(.*)/\1/" | sort -V)
+# Prepare list of currently configured UEFI Boot options
+BOOTOPTS=$(efibootmgr | sed -nr "s/Boot[0-9]{4}\* $DISTRIB $DISTRIB_ID (.*)/\1/p" | sort -V)
+UPDATED=0
+# Remove UEFI boot options for not existing kernels
+for o in $BOOTOPTS
+do
+  if [[ $KERNELS != *$o* ]]
+  then
+    echo -n "Removing boot option for not existing kernel $o"
+    efibootmgr -Bb$(efibootmgr | sed -nr "s/Boot([0-9]{4})\* $DISTRIB $DISTRIB_ID $o/\1/p") >/dev/null  
+    echo " ... removed"
+    UPDATED=1
+  fi
+done
+
+# Add UEFI boot options for new kernels
+for k in $KERNELS
+do
+  if [[ $BOOTOPTS != *$k* ]]
+  then
+    echo -n "Adding boot option for new kernel vmlinuz-$k"
+    efibootmgr -cd $EFI_DISK -p $EFI_PARTITION -l vmlinuz-$k$K_SUFFIX -L "$DISTRIB $DISTRIB_ID $k" -u "root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$k" >/dev/null
+    echo " ... added"
+    UPDATED=1
+  fi
+done
+
+if [ -nz $PDATED  ]
+then
+  echo "No updates"
+else
+  # backup last added option in startup.nsh script
+  echo "vmlinuz-$k$K_SUFFIX root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$k" > $BOOT/startup.nsh
+fi
