@@ -63,7 +63,7 @@ do
   if [[ $KERNELS != *$o* ]]
   then
     echo -n "Removing boot option for not existing kernel $o"
-    echo efibootmgr -Bb$(efibootmgr | sed -nr "s/Boot([0-9]{4})\* $DISTRIB $DISTRIB_ID $o/\1/p") >/dev/null  
+    efibootmgr -Bb$(efibootmgr | sed -nr "s/Boot([0-9]{4})\* $DISTRIB $DISTRIB_ID $o/\1/p") >/dev/null  
     echo " ... removed"
   fi
 done
@@ -74,7 +74,7 @@ do
   if [[ $BOOTOPTS != *$k* ]]
   then
     echo -n "Adding boot option for new kernel vmlinuz-$k"
-    echo efibootmgr -cd $EFI_DISK -p $EFI_PARTITION -l vmlinuz-$k$K_SUFFIX -L "$DISTRIB $DISTRIB_ID $k" -u "root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$k" >/dev/null
+    efibootmgr -cd $EFI_DISK -p $EFI_PARTITION -l vmlinuz-$k$K_SUFFIX -L "$DISTRIB $DISTRIB_ID $k" -u "root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$k" >/dev/null
     echo " ... added"
   fi
 done
