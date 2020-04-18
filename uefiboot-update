@@ -54,9 +54,12 @@ done
 
 # Prepare list of currently installed kernels' versions
 KERNELS=$(ls /boot/vm* | sed -r "s/.*vmlinuz-(.*)/\1/" | sort -V)
+
 # Prepare list of currently configured UEFI Boot options
 BOOTOPTS=$(efibootmgr | sed -nr "s/Boot[0-9]{4}\* $DISTRIB $DISTRIB_ID (.*)/\1/p" | sort -V)
+
 UPDATED=0
+
 # Remove UEFI boot options for not existing kernels
 for o in $BOOTOPTS
 do
@@ -74,17 +77,27 @@ for k in $KERNELS
 do
   if [[ $BOOTOPTS != *$k* ]]
   then
-    echo -n "Adding boot option for new kernel vmlinuz-$k"
+    echo -n "Adding boot option for new kernel $k"
     efibootmgr -cd $EFI_DISK -p $EFI_PARTITION -l vmlinuz-$k$K_SUFFIX -L "$DISTRIB $DISTRIB_ID $k" -u "root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$k" >/dev/null
     echo " ... added"
     UPDATED=1
   fi
 done
 
-if [ -nz $PDATED  ]
+if [[ $UPDATED == 0 ]]
 then
   echo "No updates"
 else
+  
   # backup last added option in startup.nsh script
   echo "vmlinuz-$k$K_SUFFIX root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$k" > $BOOT/startup.nsh
+
+  # update boot order
+  list=$(efibootmgr | sed -nr "s/Boot([0-9]){4}\* $DISTRIB $DISTRIB_ID (.*)/\1 \2/p" | sort -k2 -V -r | sed -nr 's/^([^ ]*) .*/\1/p')
+  list=$(echo $list | sed 's/ /,/g')
+  if [[ $list != "" ]]
+  then 
+    efibootmgr -o$list
+  fi
 fi
+
