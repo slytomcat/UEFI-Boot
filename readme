@@ -8,7 +8,7 @@ Boot options of UEFI boot menu will have labels formed of three parts
   - distribution identity
   - the kernel version
 
-After the syncronization the latest kernel will became the first option to load on next boots.
+After the syncronization the latest kernel will became the first option to load on next boot.
 
 Script parameters
 
@@ -53,6 +53,6 @@ Important:
 
 Be very careful with script parameters! If you make a mistake in parameters values and update UEFI boot options then the system startup will fall in to initramfs shell. There will be three options to recover normal boot:
 1. From initramfs shell: try to mount root device into /root catalog and exit from initramfs shell.
-2. Using UEFI Shell (if it is available on your system): you can manualy start the kernel and specify correct parameters for it.
+2. Using UEFI Shell (if it is available on your system): you can manualy start the kernel and specify correct parameters for it. The uefuboot-update utility creates special file startup.nsh in the EFS that contains the start command for last added kernel. This file (startup.nsh) is started automatically by UEFIShell. But as it created from the same options it may also fail.
 3. Using LiveUSB/CD: boot in UEFI mode from LiveUSB/CD and use efibootmgr utility to define correct UEFI boot option.
 After loading system you have to run uefiboot-update utility with correct parametres. 
