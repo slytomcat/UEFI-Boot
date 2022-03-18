@@ -2,7 +2,7 @@
 # Setup default cofiguration values 
 
 # Read root mounting line from /etc/fstab
-ROOT_LINE="$(sed -n '/^[^#]\S*\s\/\s/p' /etc/fstab)"
+ROOT_LINE="$(sed -n '/^[^#]\S*\s\+\/\s\+/p' /etc/fstab)"
 
 ROOT="$(echo $ROOT_LINE | sed 's/\s\/.*//')"
 OPTIONS="ro quiet"
@@ -15,7 +15,13 @@ fi
 K_SUFFIX=""
 DISTRIB=$(lsb_release -i -s)
 DISTRIB_ID="$(lsb_release -r -s) $(lsb_release -c -s)"
-EFI_DISK="/dev/sda" 
+
+EFI_DISK="/dev/nvme0n1" 
+if [ ! -b $EFI_DISK ]
+then
+  EFI_DISK="/dev/sda"
+fi
+
 EFI_PARTITION=$(gdisk -l $EFI_DISK | sed -n "s/[ \t]*\([0-9]\+\).*EF00.*/\1/p")
 
 BOOT="/boot"
@@ -78,7 +84,7 @@ do
   if [[ $BOOTOPTS != *$k* ]]
   then
     echo -n "Adding boot option for new kernel $k"
-    efibootmgr -cd $EFI_DISK -p $EFI_PARTITION -l vmlinuz-$k$K_SUFFIX -L "$DISTRIB $DISTRIB_ID $k" -u "root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$k" >/dev/null
+    efibootmgr -cd $EFI_DISK -p $EFI_PARTITION -e 3 -l "\\vmlinuz-$k$K_SUFFIX" -L "$DISTRIB $DISTRIB_ID $k" -u "root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$k" >/dev/null
     echo " ... added"
     UPDATED=1
   fi
