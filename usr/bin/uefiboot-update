@@ -2,28 +2,18 @@
 # Setup default cofiguration values 
 
 # Read root mounting line from /etc/fstab
-ROOT_LINE="$(sed -n '/^[^#]\S*\s\+\/\s\+/p' /etc/fstab)"
-
-ROOT="$(echo $ROOT_LINE | sed 's/\s\/.*//')"
+ROOT_LINE=( `sed -nr '/^[^#]\s*\S+\s+\/\s/p' /etc/fstab` )
+# set default values
+ROOT=${ROOT_LINE[0]}
+ROOT_FLAGS=${ROOT_LINE[3]}
 OPTIONS="ro quiet"
-if [[ $ROOT_LINE == *"subvol"* ]]
-then
-  ROOT_FLAGS="rootflags=$(echo $ROOT_LINE | sed 's/^.*\(subvol[^, \t]\+\).*$/\1/')"
-else
-  ROOT_FLAGS=""
-fi
-K_SUFFIX=""
 DISTRIB=$(lsb_release -i -s)
 DISTRIB_ID="$(lsb_release -r -s) $(lsb_release -c -s)"
-
 EFI_DISK="/dev/nvme0n1" 
 if [ ! -b $EFI_DISK ]
 then
   EFI_DISK="/dev/sda"
 fi
-
-EFI_PARTITION=$(gdisk -l $EFI_DISK | sed -n "s/[ \t]*\([0-9]\+\).*EF00.*/\1/p")
-
 BOOT="/boot"
 
 # Read the config file if it exists
@@ -37,29 +27,47 @@ while [ -n "$1" ]
 do
   case "$1" in
     -l) DISTRIB="$2"
-        shift;;
+        shift 2;;
     -i) DISTRIB_ID="$2"
-        shift;;
+        shift 2;;
     -d) EFI_DISK="$2"
-        # find EFS partioion number on specified disk
-        EFI_PARTITION=$(gdisk -l $EFI_DISK | sed -n "s/[ \t]*\([0-9]\+\).*EF00.*/\1/p")
-        shift;;
+        shift 2;;
     -p) EFI_PARTITION="$2"
-        shift;;
+        shift 2;;
     -o) OPTIONS="$2"
-        shift;;
-    -s) K_SUFFIX="$2"
-        shift;;
+        shift 2;;
     -r) ROOT="$2"
-        shift;;
+        shift 2;;
+    -f) ROOT_FLAGS="$2"
+        shift 2;;    
     -b) BOOT="$2"
+        shift 2;;
+    -n) DRY="1"
+        echo " ! ! ! dry run"
         shift;;
+    -h) echo "Usage: uefiboot-update [options]"
+        echo "Options:"
+        echo "  -l name  Distributive name to be included in EFI boot option (default: value of 'lsb_release -i -s')"
+        echo "  -i id    Distributive version (default: values of 'lsb_release -r -s' and 'lsb_release -c -s')"
+        echo "  -d disk  Disk with EFI partition (default: '/dev/sda' or '/dev/nvme0n1' if '/dev/sda' not exists)"
+        echo "  -p p#    EFI partition number on disk (default: the number of partiotion with type EF00)"
+        echo "  -o opt   Boot options (default: 'ro quiet')"
+        echo "  -r root  Root partition (default: the root partition from /etc/fstab)"
+        echo "  -f opt   Root partition mout options (default: the root partition options from /etc/fstab, usually 'defaults')"
+        echo "  -b path  Path to boot directory (default '/boot')"
+        echo "  -n       Don't write to EFI, only output the commands instead of execution them"  
+        echo "  -h       Prints the help message and exits"
+        exit 0;;
   esac
-  shift
 done
+if [[ -z $EFI_PARTITION ]]
+then 
+  # find EFS partioion number on specified disk
+  EFI_PARTITION=$(gdisk -l $EFI_DISK | sed -n "s/[ \t]*\([0-9]\+\).*EF00.*/\1/p")
+fi
 
 # Prepare list of currently installed kernels' versions
-KERNELS=$(ls /boot/vm* | sed -r "s/.*vmlinuz-(.*)/\1/" | sort -V)
+KERNELS=$(ls /boot/vmlinuz-* | sed -r "s/.*vmlinuz-(.*)/\1/" | sort -V)
 
 # Prepare list of currently configured UEFI Boot options
 BOOTOPTS=$(efibootmgr | sed -nr "s/Boot[0-9]{4}\* $DISTRIB $DISTRIB_ID (.*)/\1/p" | sort -V)
@@ -72,8 +80,16 @@ do
   if [[ $KERNELS != *$o* ]]
   then
     echo -n "Removing boot option for not existing kernel $o"
-    efibootmgr -Bb$(efibootmgr | sed -nr "s/Boot([0-9]{4})\* $DISTRIB $DISTRIB_ID $o/\1/p") >/dev/null  
-    echo " ... removed"
+    id=$(efibootmgr | sed -nr "s/Boot([0-9]{4})\* $DISTRIB $DISTRIB_ID $o/\1/p")
+    cmd="efibootmgr -Bb$id"
+    if [[ -z $DRY ]]
+    then
+      bash -c "$cmd >/dev/null" && echo " ... removed"
+    else
+      echo
+      echo $cmd
+      echo " ! ! ! dry run"
+    fi
     UPDATED=1
   fi
 done
@@ -84,8 +100,15 @@ do
   if [[ $BOOTOPTS != *$k* ]]
   then
     echo -n "Adding boot option for new kernel $k"
-    efibootmgr -cd $EFI_DISK -p $EFI_PARTITION -e 3 -l "\\vmlinuz-$k$K_SUFFIX" -L "$DISTRIB $DISTRIB_ID $k" -u "root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$k" >/dev/null
-    echo " ... added"
+    cmd="efibootmgr -cd $EFI_DISK -p $EFI_PARTITION -e 3 -l \"\\vmlinuz-$k\" -L \"$DISTRIB $DISTRIB_ID $k\" -u \"root=$ROOT rootflags=$ROOT_FLAGS $OPTIONS initrd=\\initrd.img-$k\""
+    if [[ -z $DRY ]]
+    then
+      bash -c "$cmd >/dev/null" && echo " ... added"
+    else
+      echo
+      echo $cmd
+      echo " ! ! ! dry run"
+    fi
     UPDATED=1
   fi
 done
@@ -99,10 +122,12 @@ else
   echo "vmlinuz-$k$K_SUFFIX root=$ROOT $ROOT_FLAGS $OPTIONS initrd=initrd.img-$k" > $BOOT/startup.nsh
 
   # update boot order
-  list=$(efibootmgr | sed -nr "s/Boot([0-9]){4}\* $DISTRIB $DISTRIB_ID (.*)/\1 \2/p" | sort -k2 -V -r | sed -nr 's/^([^ ]*) .*/\1/p')
-  list=$(echo $list | sed 's/ /,/g')
+  list=$(efibootmgr | sed -nr "s/Boot([0-9]{4})\* $DISTRIB $DISTRIB_ID (.*)/\1 \2/p" | sort -k2 -V -r | sed -nr 's/^([^ ]*) .*/\1/p')
   if [[ $list != "" ]]
   then 
+    orig=$(efibootmgr | sed -ne 's/BootOrder: //p' | sed 's/,/ /g')
+    for n in $list; do orig=$(echo $orig | sed "s/$n//"); done
+    list=$(echo $list $orig | sed -r 's/\s+/,/g')
     efibootmgr -o$list
   fi
 fi
